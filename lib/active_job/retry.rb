@@ -79,12 +79,18 @@ module ActiveJob
         define_method :internal_retry do |exception|
           this_delay = self.class.backoff_strategy.retry_delay(retry_attempt, exception)
 
+puts "INTERNAL_RETRY"
+puts "RETRY_CALLBACK #{self.class.retry_callback.inspect}"
+
           cb = self.class.retry_callback &&
                instance_exec(exception, this_delay, &self.class.retry_callback)
+puts "CB RETURNS #{cb.inspect}"
+
           return if cb == :halt
 
           # TODO: This breaks DelayedJob and Resque for some weird ActiveSupport reason.
           # logger.info("Retrying (attempt #{retry_attempt + 1}, waiting #{this_delay}s)")
+
           @retry_attempt += 1
           retry_job(wait: this_delay)
         end
